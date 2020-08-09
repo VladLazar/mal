@@ -1,12 +1,12 @@
 use regex::Regex;
 use std::collections::HashMap;
 
-use super::types::LispData;
+use super::types::LispTerm;
 
 type Token = String;
 
 struct ParsedOutput<'a> {
-    data: LispData,
+    data: LispTerm,
     tokens_left: &'a [Token]
 }
 
@@ -23,9 +23,8 @@ enum QuoteType {
     SpliceUnquote
 }
 
-pub fn read_str(input: &str) -> Result<LispData, String> {
+pub fn read_str(input: &str) -> Result<LispTerm, String> {
     let tokens = tokenize(&input);
-    println!("{:?}", tokens);
     Ok(read_form(&tokens)?.data)
 }
 
@@ -51,19 +50,19 @@ fn read_quote(tokens: &[Token], quote_type: QuoteType) -> Result<ParsedOutput, S
 
     match quote_type {
         QuoteType::Quote => Ok(ParsedOutput {
-            data: LispData::Quote(Box::new(next_form.data)),
+            data: LispTerm::Quote(Box::new(next_form.data)),
             tokens_left: next_form.tokens_left
         }),
         QuoteType::Unquote => Ok(ParsedOutput {
-            data: LispData::Unquote(Box::new(next_form.data)),
+            data: LispTerm::Unquote(Box::new(next_form.data)),
             tokens_left: next_form.tokens_left
         }),
         QuoteType::QuasiQuote => Ok(ParsedOutput {
-            data: LispData::QuasiQuote(Box::new(next_form.data)),
+            data: LispTerm::QuasiQuote(Box::new(next_form.data)),
             tokens_left: next_form.tokens_left
         }),
         QuoteType::SpliceUnquote => Ok(ParsedOutput {
-            data: LispData::SpliceUnquote(Box::new(next_form.data)),
+            data: LispTerm::SpliceUnquote(Box::new(next_form.data)),
             tokens_left: next_form.tokens_left
         })
     }
@@ -99,9 +98,9 @@ fn read_sequence(tokens: &[Token], sequence_type: SequenceType) -> Result<Parsed
 
     if tokens_left.len() > 1 {
         let data = match sequence_type {
-            SequenceType::List => LispData::List(parsed_forms),
-            SequenceType::Vector => LispData::Vector(parsed_forms),
-            SequenceType::Map => LispData::Map(construct_map(&parsed_forms)?)
+            SequenceType::List => LispTerm::List(parsed_forms),
+            SequenceType::Vector => LispTerm::Vector(parsed_forms),
+            SequenceType::Map => LispTerm::Map(construct_map(&parsed_forms)?)
         };
 
         Ok(ParsedOutput {
@@ -113,7 +112,7 @@ fn read_sequence(tokens: &[Token], sequence_type: SequenceType) -> Result<Parsed
     }
 }
 
-fn construct_map(forms: &Vec<LispData>) -> Result<HashMap<String, LispData>, String> {
+fn construct_map(forms: &Vec<LispTerm>) -> Result<HashMap<String, LispTerm>, String> {
     if forms.len() % 2 != 0 {
         return Err(String::from("Odd number of elements in map"));
     }
@@ -124,8 +123,8 @@ fn construct_map(forms: &Vec<LispData>) -> Result<HashMap<String, LispData>, Str
     let mut map = HashMap::new();
     for (key, value) in keys.zip(values) {
         match key {
-            LispData::Str(string_key)  => { map.insert(string_key, value); },
-            LispData::Keyword(keyword) => { map.insert(format!(":{}", keyword), value); },
+            LispTerm::Str(string_key)  => { map.insert(string_key, value); },
+            LispTerm::Keyword(keyword) => { map.insert(format!(":{}", keyword), value); },
             _ => { return Err(String::from("Non string used as key in map")); }
         }
     }
@@ -143,31 +142,31 @@ fn read_atom(tokens: &[Token]) -> Result<ParsedOutput, String> {
     let token = tokens.first().unwrap();
     match token.as_ref() {
         token if token.parse::<isize>().is_ok() => Ok(ParsedOutput {
-            data: LispData::Number(token.parse::<isize>().unwrap()),
+            data: LispTerm::Number(token.parse::<isize>().unwrap()),
             tokens_left: &tokens[1..]
         }),
         token if first_char(token) == '"' => Ok(ParsedOutput {
-            data: LispData::Str(read_string(token)?),
+            data: LispTerm::Str(read_string(token)?),
             tokens_left: &tokens[1..]
         }),
         token if first_char(token) == ':' => Ok(ParsedOutput {
-            data: LispData::Keyword(read_keyword(token)?),
+            data: LispTerm::Keyword(read_keyword(token)?),
             tokens_left: &tokens[1..]
         }),
         "nil" => Ok(ParsedOutput {
-            data: LispData::Nil,
+            data: LispTerm::Nil,
             tokens_left: &tokens[1..]
         }),
         "true" => Ok(ParsedOutput {
-            data: LispData::Boolean(true),
+            data: LispTerm::Boolean(true),
             tokens_left: &tokens[1..]
         }),
         "false" => Ok(ParsedOutput {
-            data: LispData::Boolean(false),
+            data: LispTerm::Boolean(false),
             tokens_left: &tokens[1..]
         }),
         token => Ok(ParsedOutput {
-            data: LispData::Symbol(String::from(token)),
+            data: LispTerm::Symbol(String::from(token)),
             tokens_left: &tokens[1..]
         })
     }

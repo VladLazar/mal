@@ -1,18 +1,19 @@
 use std::collections::HashMap;
 
 #[derive(Clone)]
-pub enum LispData {
-    List(Vec<LispData>),
-    Vector(Vec<LispData>),
-    Map(HashMap<String, LispData>),
+pub enum LispTerm {
+    List(Vec<LispTerm>),
+    Vector(Vec<LispTerm>),
+    Map(HashMap<String, LispTerm>),
     Number(isize),
     Boolean(bool),
     Symbol(String),
     Str(String),
     Keyword(String),
-    Quote(Box<LispData>),
-    QuasiQuote(Box<LispData>),
-    Unquote(Box<LispData>),
-    SpliceUnquote(Box<LispData>),
+    Quote(Box<LispTerm>),
+    QuasiQuote(Box<LispTerm>),
+    Unquote(Box<LispTerm>),
+    SpliceUnquote(Box<LispTerm>),
+    Func(fn(&[LispTerm]) -> Result<LispTerm, String>),
     Nil
 }

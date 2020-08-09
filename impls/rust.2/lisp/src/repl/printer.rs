@@ -1,20 +1,21 @@
-use super::types::LispData;
+use super::types::LispTerm;
 
-pub fn print_str(data: &LispData) -> String {
+pub fn print_str(data: &LispTerm) -> String {
     match data {
-        LispData::Symbol(name) => name.to_string(),
-        LispData::Number(num) => num.to_string(),
-        LispData::List(list) => format!("({})", list.iter().map(|x| print_str(x)).collect::<Vec<_>>().join(" ")),
-        LispData::Vector(vector) => format!("[{}]", vector.iter().map(|x| print_str(x)).collect::<Vec<_>>().join(" ")),
-        LispData::Map(map) => format!("{{{}}}", map.iter().map(|(k, v)| format!("{} {}", print_map_key(k), print_str(v))).collect::<Vec<_>>().join(" ")),
-        LispData::Str(string) => format!("\"{}\"", string),
-        LispData::Keyword(keyword) => format!(":{}", keyword),
-        LispData::Boolean(val) => format!("{}", val),
-        LispData::Quote(form) => format!("(quote {})", print_str(form)),
-        LispData::QuasiQuote(form) => format!("(quasiquote {})", print_str(form)),
-        LispData::Unquote(form) => format!("(unquote {})", print_str(form)),
-        LispData::SpliceUnquote(form) => format!("(splice-unquote {})", print_str(form)),
-        LispData::Nil => String::from("nil")
+        LispTerm::Symbol(name) => name.to_string(),
+        LispTerm::Number(num) => num.to_string(),
+        LispTerm::List(list) => format!("({})", list.iter().map(|x| print_str(x)).collect::<Vec<_>>().join(" ")),
+        LispTerm::Vector(vector) => format!("[{}]", vector.iter().map(|x| print_str(x)).collect::<Vec<_>>().join(" ")),
+        LispTerm::Map(map) => format!("{{{}}}", map.iter().map(|(k, v)| format!("{} {}", print_map_key(k), print_str(v))).collect::<Vec<_>>().join(" ")),
+        LispTerm::Str(string) => format!("\"{}\"", string),
+        LispTerm::Keyword(keyword) => format!(":{}", keyword),
+        LispTerm::Boolean(val) => format!("{}", val),
+        LispTerm::Quote(form) => format!("(quote {})", print_str(form)),
+        LispTerm::QuasiQuote(form) => format!("(quasiquote {})", print_str(form)),
+        LispTerm::Unquote(form) => format!("(unquote {})", print_str(form)),
+        LispTerm::SpliceUnquote(form) => format!("(splice-unquote {})", print_str(form)),
+        LispTerm::Func(_) => "#<function>".to_string(),
+        LispTerm::Nil => String::from("nil")
     }
 }
 
