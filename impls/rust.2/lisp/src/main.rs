@@ -3,6 +3,8 @@ use std::io::{self, Write};
 mod repl;
 
 fn main() {
+    let mut env = repl::env::default_env();
+
     loop {
         print!("user> ");
         io::stdout().flush().unwrap();
@@ -13,7 +15,7 @@ fn main() {
             break;
         }
 
-        println!("{}", repl::rep(input));
+        println!("{}", repl::rep(input, &mut env));
     }
 }
 
